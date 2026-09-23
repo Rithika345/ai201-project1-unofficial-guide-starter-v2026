@@ -23,11 +23,11 @@ names a target of "4 of 5", and four of three is not a thing.
 
 QUESTIONS = [
     # {"question": "...", "expects": "..."},
-    {"question": "", "expects": ""},
-    {"question": "", "expects": ""},
-    {"question": "", "expects": ""},
-    {"question": "", "expects": ""},
-    {"question": "", "expects": ""},
+    {"question": "What is the wait time at 12:30 PM in ridgeway cafe", "expects": "It takes about 10 ro 15 minutes"},
+    {"question": "What is the maximum number of hours we can work in a week during the term?", "expects": "The maximum number of hours is 20"},
+    {"question": "How many exams are there for Econ 101? Is the class curved?", "expects": "Three exams in total (2 midterms and 1 final). The class is curved."},
+    {"question": "Is stat 150 more busy in the beginning or end of the semester? How much time can I expect to spend on this class?", "expects": "It is more busier in the beginning of the semester. You can expect to spend 5-6 hours per week on this class."},
+    {"question": "I don't like taking exams so is hist 118 a good fit for me? I want to do well so when are the rubrics released?", "expects": "Yes, hist 118 is a good fit for you because it doesn't have exams, just two essays and a final project. The rubrics are released in week 2 so make sure to follow it well!"},
 ]
 
 # Questions from a different world entirely. Your gate should refuse all five.
