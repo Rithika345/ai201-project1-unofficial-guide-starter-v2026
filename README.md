@@ -172,9 +172,9 @@ isn't enough and the grounding instruction below matters too.
      Milestone 5. -->
 
 **1.**
-
+I asked claude to write the chunking function based on my instruction. I choose sentence chunking along with 150 character limit and picked what worked best. 
 **2.**
-
+I asked Claude to run the tests so I could compare the results
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
      claims earns nothing.
