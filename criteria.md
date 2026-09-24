@@ -25,6 +25,7 @@ contains the answer.
 **Why this target:**
 <!-- e.g. "One of my questions is about a topic only two documents mention, so
      I expect that one to be hard." -->
+     Getting the right chunks is key to getting the right answer so for the majority of the questions, the retrived chunks should have answers. 
 
 ---
 
@@ -35,6 +36,7 @@ Every answer the system produces names at least one source document.
 **Why this target:**
 <!-- Why all five and not four? What about your setup makes that achievable —
      or what would have to go wrong for it not to be? -->
+     LLMs are known for hallucinating a lot so if even one answer cannot be backed up by good sources then that puts the credability and accuracy of our system at risk.
 
 ---
 
@@ -52,11 +54,13 @@ in at least 4 of 5 tries.
 **Why this target:**
 <!-- What did your distances look like when you set the cutoff in Milestone 4?
      Was there a clean gap, or did the two groups overlap? -->
+     We have to tell AI to say it doesn't know something when it doesn't because otherwise it will hallucinate and lie!
 
 ---
 
 ## 4. Something about your chunks
-
+At least 4 out of 5 chunks did not provide unnecessary information 
+At least 3 out of 5 chunks do not contain more than 2 to 3 sentences. 
 <!-- YOU WRITE THIS ONE.
 
      How would you know if your chunks were the right size? Name something
@@ -72,13 +76,13 @@ in at least 4 of 5 tries.
 
 
 **Why this target:**
-
+if the chunk size is too big then the middle gets ignored by an LLM which is not something we want. We aslo don't want so much information that it's completely irrelavnt. most files only have 5 sentences max.
 
 
 ---
 
 ## 5. Your choice
-
+At least 3 out of 5 responses currently provide the context of the person answering the question in the source document.
 <!-- YOU WRITE THIS ONE TOO.
 
      Pick something you actually care about getting right. It could be about
@@ -90,7 +94,7 @@ in at least 4 of 5 tries.
 
 
 **Why this target:**
-
+It is important that the relevant context is provided so the user can make more informed decisions. You need to know who you are getting advice from if that info is there. 
 
 
 ---
