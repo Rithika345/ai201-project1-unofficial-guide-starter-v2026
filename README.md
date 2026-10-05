@@ -184,117 +184,139 @@ I asked Claude to run the tests so I could compare the results. it first didn't 
 
 # Unit 2
 
-<!-- These sections get ADDED to what's already above. Don't delete or rewrite
-     unit 1 — the point is that someone can see what you said before you knew
-     how it went. -->
+Everything below was measured with `python run_eval.py` (3 runs per question, cache off) and logged in `results/run_2026-10-04_1901_before.md` and `results/run_2026-10-04_1903_after.md`. There is no `scorer.py`, so I judged answers by hand against the retrieved chunks.
 
 ## Run Log — Before
 
-<!-- Your five criteria, three runs each. `python run_eval.py --label before`
-     runs the questions, puts the OUT_OF_SCOPE ones through the gate, and
-     writes it all into results/ for you. Targets come from criteria.md; the
-     verdict column is your call.
-
-     Criterion 3 is measured in one deterministic pass rather than three, so
-     the same number goes in all three run columns. That's correct, not lazy.
-
-     Milestone 1. -->
+Retrieval and the gate are deterministic, so criteria 1, 3 and 4 come out the same on every run; only the generated wording changed between runs. Criterion 2 and 5 were checked on each run's actual answers.
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 2/5 | 2/5 | 2/5 | MISSED |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Chunks: ≥4/5 free of unnecessary info AND ≥3/5 within 2-3 sentences | 4 of 5 / 3 of 5 | 3/5 and 22/22 | 3/5 and 22/22 | 3/5 and 22/22 | MISSED |
+| 5. ≥3/5 answers give the context of the person who wrote the source | 3 of 5 | 0/5 | 0/5 | 0/5 | MISSED |
 
-<!-- Underneath, paste the REAL output for each criterion from one of your
-     runs — the actual text your system produced, not a description of it.
-     Name the file and function that produced it. -->
+How criterion 1 was counted (whole answer needed in the top 5; every question has two facts or one fact I can check): Q1 yes, Q2 yes, Q3 no (exam count missing), Q4 no ("busy at the beginning" missing), Q5 no (rubric timing missing). Q1 and Q2 pass; the three two-part questions fail on their second part.
+
+How criterion 4 was counted: part A = is the top-1 chunk for each question free of text irrelevant to the question. Q1 yes, Q2 yes, Q4 yes, Q3 no (top-1 was `course_biol_160.txt#2`, a different course), Q5 no (top-1 was a workload chunk about reading load, answering neither half) = 3/5. Part B = the 22 distinct chunks retrieved across all five questions each have ≤3 sentences (22/22; 224 of all 231 chunks).
+
+**Real output (from `results/run_2026-10-04_1901_before.md`, produced by `run_eval.py::run_once` → `store.py::search` → `gate.py::check` → `generate.py::answer_from_chunks`)**
+
+Criterion 1 — top 5 retrieved for the Econ 101 question (`store.py::search`):
+
+```
+1 0.442 course_biol_160.txt     | Not curved. / Expect 9 to 11 hours a week, the heaviest first-year course by reputation. ...
+2 0.477 course_econ_101.txt     | ECON 101 Introduction to Economics / Took this last spring. Format is large lecture, 300 people, with small discussion sections.
+3 0.485 course_cs_210_exams.txt | Midterms are curved, the final is not. ...
+4 0.488 course_stat_150.txt     | No curve, but the lowest midterm is dropped. ...
+5 0.489 course_econ_101.txt     | Curved, and generously. / Expect 4 hours a week outside class. ...
+```
+
+The sentence "Assessment: two midterms and a final, all multiple choice." (`course_econ_101.txt#1`) is not in the top 5; it ranked 32nd (distance 0.620).
+
+Criterion 2 — `generate.py::answer_from_chunks`, Q2 run 1:
+
+```
+The maximum number of hours you can work in a week during the term is 20 hours.
+
+Source: money_jobs.txt
+```
+
+Criterion 3 — `run_eval.py::check_out_of_scope`, cutoff 0.6, refused 5 of 5:
+
+```
+| What is the capital of Mongolia? | 0.790 | refused |
+| How do I change the oil in a diesel engine? | 0.848 | refused |
+| Who won the 1994 World Cup? | 0.818 | refused |
+| What is the recommended dosage of ibuprofen for a headache? | 0.798 | refused |
+| How do I write a for loop in Rust? | 0.864 | refused |
+```
+
+Criterion 4 — the top-1 chunk for the Econ 101 question (`chunker.py::split_documents`):
+
+```
+course_biol_160.txt#2: Not curved. / Expect 9 to 11 hours a week, the heaviest first-year course by reputation. / The one piece of advice: the unit tests come fast, roughly every three weeks; falling behind once is very hard to recover from.
+```
+
+Criterion 5 — `generate.py::answer_from_chunks`, hist 118 question run 1. The retrieved `course_hist_118.txt` chunk opens "Transferred in last year, so take this with a grain of salt." and the answer never says so:
+
+```
+Yes, HIST 118 has no exams (it has two essays and a final project), making it a good fit if you dislike exams (`course_hist_118_exams.txt`). However, the provided documents do not contain information on when the rubrics are released, so I don't have enough information to answer that part of your question.
+```
 
 ## Verdicts
 
-<!-- MET or MISSED for each of the five, against the target you wrote last
-     unit — not a new one. Plus a sentence on how you decided. That sentence
-     matters most where it was close.
-
-     If your target said 4 of 5 and your runs came out 4, 3, 4, that's a MISS.
-     The target has to hold, not show up occasionally.
-
-     Milestone 2. -->
-
 | # | Criterion | Verdict | How I decided |
 |---|---|---|---|
-| 1 |  |  |  |
-| 2 |  |  |  |
-| 3 |  |  |  |
-| 4 |  |  |  |
-| 5 |  |  |  |
+| 1 | Retrieved chunk contains the answer (4 of 5) | MISSED | 2/5 on all three runs, against a target of 4. Not close: three of five answer chunks were not in the top 5 at all. |
+| 2 | Every answer names a source (5 of 5) | MET | All 15 answers (5 questions x 3 runs) cited at least one filename. |
+| 3 | Gate stops out-of-corpus questions (4 of 5) | MET | Gate refused 5/5; the closest out-of-scope question (0.790) is well over the 0.6 cutoff, and the worst in-corpus question (0.519) is well under it. |
+| 4 | Chunk quality (≥4/5 no unnecessary info, ≥3/5 ≤3 sentences) | MISSED | The sentence-count half is met (22/22), but the "unnecessary information" half got 3/5 against a target of 4, and the criterion needs both. Reading "unnecessary" was a judgement call, so this one is the least certain; I kept my stricter reading. |
+| 5 | ≥3/5 answers give the speaker's context | MISSED | 0/5 on all three runs. Not one answer said anything like "a second-year says" or "a transfer student, with a grain of salt". |
+
+I did not revise any criterion. Criterion 4's "unnecessary information" is fuzzy, but I could still score it, so it is a miss, not a broken measurement.
 
 ## Diagnoses
 
-<!-- For each miss: which stage caused it, and how. The stage alone isn't
-     enough — you need the mechanism.
+**Criterion 1 (retrieval, caused by chunking).** Q3, Q4 and Q5 all ask two things, and in each the chunk with the second answer is a continuation chunk that never names its subject. "Assessment: two midterms and a final, all multiple choice." (Q3), "It's front-loaded — the first month is heavier than the rest" (Q4, `course_stat_150_workload.txt#1`, rank 23) and "...the essay rubric is posted in week 2" (Q5, `course_hist_118.txt#2`, rank 6) contain no course name, so the embedding of "ECON 101 / STAT 150 / HIST 118" can't match them. Chunks that do name another course or are generic ("Curved, and generously", "Not curved") outrank them. One pattern, three misses: chunking by sentence stripped the title off every chunk after the first, and the embedder only sees chunk text. Generation was fine: given the right chunk, the model answered it.
 
-     Not a diagnosis: "Question 3 didn't work."
-     A diagnosis:     "Question 3 asks about laundry costs. The answer is in
-                       one sentence that got split across two chunks, so
-                       neither chunk on its own contains it."
+**Criterion 4 (chunking).** Same root cause. A chunk like `course_biol_160.txt#2` ("Not curved. Expect 9 to 11 hours...") has nothing saying it is BIOL 160, so it matches any "curved" question for any course and arrives as noise for the Econ 101 question.
 
-     The five stages: loading → chunking → embedding → retrieval → generation.
-
-     Look for a pattern. If three misses all ask about numbers, that's one
-     problem, not three.
-
-     Missed nothing? Say so, then say honestly whether your targets were set
-     low, and which one you'd tighten and to what.
-
-     Milestone 3. -->
+**Criterion 5 (generation, with a chunking contribution).** The prompt in `generate.py::GROUNDING_INSTRUCTION` never asks the model to say who wrote the source, so it doesn't. This is a generation miss, not retrieval: the speaker sentence was in the retrieved chunks for Q1 ("Second-year here.") and Q5 ("Transferred in last year, so take this with a grain of salt.") and was left out of the answer. Only 22 of the 88 documents contain such a sentence, so even a perfect prompt could not reach 3/5 on every set of questions; but it could here, where two or more of my questions' sources have one.
 
 ## The Improvement
 
-**What I changed:**
+**What I changed:** In `chunker.py::split_documents`, every chunk after the first in a document now starts with the document's title line (e.g. "ECON 101 Introduction to Economics") before its text, controlled by `config.CHUNK_HEADERS` (env `AI201_CHUNK_HEADERS=1`). I indexed it as a second variant (`python app.py --variant headers index`) so both indexes exist and the before index is untouched. Nothing else changed: same model, top-k 5, cutoff 0.6, prompt.
 
-**Why I picked it:**
-
-<!-- Connect it to a specific diagnosis above in one sentence. If you can't,
-     you picked a fix because it sounded impressive. -->
+**Why I picked it:** Criterion 1's three misses all came from continuation chunks that don't say which course they are about, and putting the title back into the chunk text is the direct fix for that one mechanism. I chose this over hybrid search because BM25 can't match "Econ 101" to a chunk that doesn't contain the words "Econ 101" either.
 
 ### Run Log — After
 
-<!-- Same format, same five criteria, three runs each.
-     `python run_eval.py --label after` -->
+`python run_eval.py --label after --variant headers` → `results/run_2026-10-04_1903_after.md`.
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunk contains the answer | 4 of 5 | 4/5 | 4/5 | 4/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Chunks: ≥4/5 free of unnecessary info AND ≥3/5 within 2-3 sentences | 4 of 5 / 3 of 5 | 5/5 and 24/24 | 5/5 and 24/24 | 5/5 and 24/24 | MET |
+| 5. ≥3/5 answers give the context of the person who wrote the source | 3 of 5 | 0/5 | 0/5 | 0/5 | MISSED |
 
-**Did it help?**
+After, the top-1 chunk for every question comes from the document the question is about (Q3 is now `course_econ_101.txt#2`, not BIOL 160). The 24/24 count excludes the added title line when counting sentences.
 
-<!-- Say plainly whether it did, and how you know. If it made things worse,
-     say that — a change that backfired, honestly reported, earns full credit
-     and is more interesting than one that worked. What matters is that you can
-     tell.
+Real output after (`generate.py::answer_from_chunks`), STAT 150 question run 1, which was the "documents do not contain information regarding busier at the beginning" answer before:
 
-     Milestone 4. -->
+```
+STAT 150 is front-loaded, meaning the first month is heavier than the rest. You can expect to spend 5 to 6 hours a week outside of class.
+*(Sources: `course_stat_150_workload.txt` and `course_stat_150.txt`)*
+```
+
+HIST 118 run 1, which could not give the rubric timing before:
+
+```
+Yes, HIST 118 is a good fit for you because it has no exams; assessment consists of two essays and a final project (course_hist_118.txt). The essay rubric is posted in week 2 (course_hist_118.txt, course_hist_118_exams.txt).
+```
+
+Econ 101 run 1, still wrong on the exam count:
+
+```
+Based on the provided documents, the number of exams for ECON 101 is not mentioned. However, the documents state that grades are curved, and generously (*course_econ_101.txt* and *course_econ_101_exams.txt*).
+```
+
+**Did it help?** Yes, on the criterion it targeted: criterion 1 went from 2/5 to 4/5 on all three runs, and two answers (Q4, Q5) changed from "not in the documents" to correct. Criterion 4 flipped to MET as a side effect, because the same noise (wrong-course chunks) was behind it. Caveat: I'm judging chunk noise by hand, and the "after" 5/5 is on my own reading of the top-1 chunk. The gate also moved slightly (best out-of-scope distance still ≥0.790, best in-corpus ≤0.490, so the 0.6 cutoff is still in a clean gap). Criterion 5 didn't move, as expected, since I didn't touch the prompt. One run per condition is a small sample: the 2→4 jump is two questions.
 
 ## What's Still Broken
 
-<!-- For each criterion still missed after your fix: what you'd do about it,
-     and why you stopped where you did.
-
-     "I ran out of time" is fine if it's true. Pretending nothing is left is
-     not.
-
-     Milestone 5. -->
+- **Criterion 5 (0/5, MISSED):** a generation problem. I'd add a line to `GROUNDING_INSTRUCTION` telling the model to mention who is speaking when the source says (e.g. "a second-year", "a transfer student, so treat with caution"), then re-run. I stopped because the unit asks for one change measured properly, and this would have muddied the criterion 1 comparison.
+- **Econ 101 exam count:** still not answered. "Assessment: two midterms and a final" is in `course_econ_101.txt#1`, which isn't in the new top 5 either (the question's other half, "curved", pulls in curve-related chunks from other courses). Splitting two-part questions into two retrievals, or a larger top-k, would likely catch it. I didn't try; criterion 1 now passes at 4/5, but this is the same kind of fragility.
+- The gate only checks the single best chunk, so a two-part question passes as soon as one half matches. That's why no refusal happened on any partly-answered question.
 
 ## What I'd Do Differently
 
-<!-- Knowing what you know now — which of your five criteria would you write
-     differently, and why?
+Criterion 5 should be rewritten: "answers give the context of the person answering" depends on the corpus (only 22 of 88 documents even have such a sentence), so I should have scoped it to "for questions whose source documents mention who the writer is". I'd also tighten criterion 4: "unnecessary information" took judgement, and I'd replace it with something I can count, like "the top-1 chunk for at least 4 of 5 questions comes from the document the question names". Finally, criterion 1 should say "all parts of a multi-part question", since my questions were two-part and the original wording didn't make clear whether half an answer counted.
 
-     Milestone 5. -->
+## How I Used AI (Unit 2)
+
+I asked Claude to run `run_eval.py`, pull the top-40 ranking for the three missed questions, and tell me where the answer chunks ranked; that is how the "no course name in the chunk" pattern turned up (ranks 32, 23 and 6). I also asked it to implement the title-prefix change in `chunker.py` and `config.py`. It wrote the first draft of the README sections; I checked the counts against the result files and the verdicts against my criteria.
