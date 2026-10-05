@@ -319,4 +319,10 @@ Criterion 5 should be rewritten: "answers give the context of the person answeri
 
 ## How I Used AI (Unit 2)
 
-I asked Claude to run `run_eval.py`, pull the top-40 ranking for the three missed questions, and tell me where the answer chunks ranked; that is how the "no course name in the chunk" pattern turned up (ranks 32, 23 and 6). I also asked it to implement the title-prefix change in `chunker.py` and `config.py`. It wrote the first draft of the README sections; I checked the counts against the result files and the verdicts against my criteria.
+**1. Finding the pattern in my retrieval misses.** After `run_eval.py` showed criterion 1 at 2/5, I asked Claude to print the top 40 results for the three questions that failed and report where the chunk holding the missing answer ranked. It came back with ranks 32 (Econ 101 exam count), 23 (STAT 150 "front-loaded") and 6 (HIST 118 rubric). I read those chunks and saw that none of them names its course, which is why a question that says "Econ 101" can't match them. That became one diagnosis instead of three separate ones.
+
+**2. The fix.** I asked Claude to add the document title to the top of every chunk after the first, behind a `CHUNK_HEADERS` setting so I could keep the old index to compare against. It wrote the change in `chunker.py` and `config.py`. I ran the full test against both indexes myself and chose to make the new chunking the default only after criterion 1 went from 2/5 to 4/5.
+
+**3. A fix that mostly didn't work.** I had Claude add a line to the grounding prompt telling the model to mention who is speaking. Criterion 5 only went from 0/5 to 1/5, because the chunk with the speaker line for HIST 118 wasn't being retrieved. I reported it as still missed rather than lowering the target.
+
+**Checking the drafts.** Claude drafted the first version of the README tables. I checked the counts against the files in `results/` before keeping them.
