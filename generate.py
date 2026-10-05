@@ -279,6 +279,7 @@ Rules:
 - Use only the information in the documents below. Do not use anything you know from elsewhere.
 - If the documents don't cover the question, say you don't have enough information. Do not guess.
 - Name the document your answer came from, using the filename given in each excerpt.
+- If a document says who is speaking (for example a year in school, or being a transfer student), mention that briefly so the reader knows whose experience it is.
 - Be brief. Two or three sentences is usually enough."""
 
 
