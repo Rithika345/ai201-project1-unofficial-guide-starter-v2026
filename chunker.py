@@ -97,6 +97,7 @@ def split_documents(documents: list[Document]) -> list[Chunk]:
     chunks: list[Chunk] = []
 
     for doc in documents:
+        title = doc.text.split("\n", 1)[0].strip()
         sentences = split_into_sentences(doc.text)
         index = 0
         current = ""
@@ -108,7 +109,7 @@ def split_documents(documents: list[Document]) -> list[Chunk]:
                 # close the chunk now and start a new one with this sentence.
                 chunks.append(
                     Chunk(
-                        text=current,
+                        text=_with_title(current, title, index),
                         source=doc.source,
                         index=index,
                         produced_by="chunker.py::split_documents",
@@ -122,7 +123,7 @@ def split_documents(documents: list[Document]) -> list[Chunk]:
         if current:
             chunks.append(
                 Chunk(
-                    text=current,
+                    text=_with_title(current, title, index),
                     source=doc.source,
                     index=index,
                     produced_by="chunker.py::split_documents",
@@ -130,6 +131,14 @@ def split_documents(documents: list[Document]) -> list[Chunk]:
             )
 
     return chunks
+
+
+def _with_title(text: str, title: str, index: int) -> str:
+    """Prefix the document's title line to every chunk after the first, when
+    config.CHUNK_HEADERS is on. Chunk 0 already starts with the title."""
+    if config.CHUNK_HEADERS and index > 0:
+        return f"{title}\n\n{text}"
+    return text
 
 
 def describe(chunks: list[Chunk]) -> str:

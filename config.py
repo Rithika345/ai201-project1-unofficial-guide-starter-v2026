@@ -31,6 +31,13 @@ CHUNK_SIZE = 150        # characters per chunk
 CHUNK_OVERLAP = 120     # characters shared between neighbouring chunks (unused by split_documents)
 
 
+# Unit 2 improvement: put the document's title line at the top of every chunk
+# after the first, so a chunk like "Assessment: two midterms and a final" still
+# says which course it is about. Off by default so the "before" index can be
+# rebuilt; index the improved one with AI201_CHUNK_HEADERS=1 --variant headers.
+CHUNK_HEADERS = os.getenv("AI201_CHUNK_HEADERS", "0") == "1"
+
+
 # ─── Retrieval (Milestone 4) ─────────────────────────────────────────────────
 
 TOP_K = 5               # how many chunks to pull back per question
